@@ -1,84 +1,90 @@
 <template lang="">
-  <div class="container">
+  <div class="container" :style="style">
     <img src="../assets/search.svg" alt="" />
-    <TagInput>
-      <div class="tag-container">
-        <ul>
-          <li v-for="(city, key) in selectedCity" :key="key">
-            {{ city }}
-            <img src="../assets/times.svg" alt="" @click="removeTag(city)" />
-          </li>
-        </ul>
-      </div>
-    </TagInput>
+    <div class="tag-container">
+      <ul>
+        <li v-for="item in selectedItem" :key="item.id">
+          {{ item }}
+          <img src="../assets/times.svg" alt="" @click="removeTag(item)" />
+        </li>
+      </ul>
+    </div>
     <input
-      placeholder="Nhập tên thành phố để tìm kiếm..."
-      v-model="this.searchedCity"
+      :placeholder="placeholder"
+      v-model="searchedString"
       @input="filterList"
       type="text"
-      key="city-input"
+      name="item-input"
     />
   </div>
   <div class="dropdown">
     <div
       class="dropdown__item"
-      v-for="city in filteredList"
-      :key="city.code"
-      @click="addTag(city.name)"
+      v-for="item in filteredList"
+      :key="item.code"
+      @click="addTag(item.name)"
     >
-      {{ city.name }}
+      {{ item.name }}
     </div>
   </div>
 </template>
 <script>
-import TagInput from "./TagInput.vue";
 export default {
   name: "DropdownInput",
-  components: {
-    TagInput,
+  props: {
+    placeholder: {
+      type: String,
+      default: "Nhập tên cần tìm kiếm",
+    },
+    listArray: {
+      type: Array,
+      required: true,
+    },
+    width: {
+      type: String,
+      default: "auto",
+    },
+    height: {
+      type: String,
+      default: "auto",
+    },
   },
   data() {
     return {
-      cityList: [],
-      searchedCity: "",
+      searchedString: "",
       filteredList: [],
-      selectedCity: [],
+      selectedItem: [],
     };
-  },
-  created() {
-    fetch("https://provinces.open-api.vn/api/")
-      .then((res) => res.json())
-      .then((data) => {
-        for (let item of data) {
-          this.cityList.push(item);
-        }
-      });
   },
   methods: {
     filterList() {
-      if (this.searchedCity.length > 0) {
-        this.filteredList = [...this.cityList];
-        this.filteredList = this.filteredList.filter((city) =>
-          city.name.toLowerCase().includes(this.searchedCity.toLowerCase())
+      if (this.searchedString.length > 0) {
+        this.filteredList = [...this.listArray];
+        this.filteredList = this.filteredList.filter((item) =>
+          item.name.toLowerCase().includes(this.searchedString.toLowerCase())
         );
       } else this.filteredList = [];
     },
-    addTag(cityName) {
-      if (!this.selectedCity.includes(cityName)) {
-        this.selectedCity.push(cityName);
+    addTag(itemName) {
+      if (!this.selectedItem.includes(itemName)) {
+        this.selectedItem.push(itemName);
       }
-      this.searchedCity = "";
+      this.searchedString = "";
       this.filteredList = [];
     },
-    removeTag(cityName) {
-      this.selectedCity = this.selectedCity.filter((city) => city !== cityName);
+    removeTag(itemName) {
+      this.selectedItem = this.selectedItem.filter((item) => item !== itemName);
+    },
+  },
+  computed: {
+    style() {
+      return { width: this.width, height: this.height };
     },
   },
 };
 </script>
 <style lang="scss" scoped>
 .container {
-  width: 400px;
   height: auto;
   border-radius: 4px;
   border: 1px solid #dbdbdb;
@@ -86,6 +92,7 @@ export default {
   margin-left: auto;
   margin-right: auto;
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
 
   & img {
